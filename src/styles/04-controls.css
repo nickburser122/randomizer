@@ -1,0 +1,29 @@
+.btn{border:1px solid var(--ln);background:transparent;border-radius:999px;padding:9px 18px;font-size:14px;font-weight:500;transition:border-color .15s,color .15s}
+.btn:hover{border-color:var(--ink)}
+.btn.ok{border-color:var(--tl);color:var(--tl)}
+.ball{width:54px;height:54px;border-radius:50%;border:0;background:var(--ac);display:grid;place-items:center;padding:0;box-shadow:0 6px 16px -6px var(--sh);transition:transform .15s}
+.ball svg{width:30px;height:30px;fill:var(--acx)}
+.ball:hover{transform:rotate(-14deg) scale(1.07)}
+.ball:active{transform:scale(.95)}
+.ball.spin svg{animation:sp .45s cubic-bezier(.3,1.3,.5,1)}
+@keyframes sp{from{transform:rotate(-240deg) scale(.6)}to{transform:none}}
+.chip{border:1px solid var(--ln);background:transparent;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;color:var(--mut);transition:all .15s}
+.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.in{width:100%;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:9px 12px;min-height:42px}
+.in:hover{border-color:var(--mut)}
+.in.num{width:80px;flex:none;text-align:center;-moz-appearance:textfield}
+.in.num::-webkit-outer-spin-button,.in.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sl{display:flex;align-items:center;gap:16px;max-width:420px}
+.sl input[type=range]{--p:50%;flex:1;min-width:0;-webkit-appearance:none;appearance:none;height:26px;background:linear-gradient(var(--ink),var(--ink)) 0 50%/var(--p) 3px no-repeat,linear-gradient(var(--ln),var(--ln)) 0 50%/100% 3px no-repeat}
+.sl input[type=range]::-webkit-slider-runnable-track{background:transparent;height:26px}
+.sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:4px;border-radius:50%;background:var(--ink);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--ink)}
+.sl input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--ink);border:3px solid var(--bg);box-shadow:0 0 0 1px var(--ink)}
+.sl input[type=range]::-moz-range-track{background:transparent}
+.dd{position:relative;display:block;width:100%}
+.dd.open .dd-b::after{transform:translateY(-25%) rotate(225deg)}
+.dd.open .dd-m{display:block}
+.chip.ref{min-height:32px;padding:4px 11px;font:400 12.5px 'Geist Mono',ui-monospace,monospace}
+.in{font-size:16px}
+.btn,.dd-b{min-height:46px}
+.chip{min-height:40px}

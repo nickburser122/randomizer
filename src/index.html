@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light dark">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>randomizer</title>
+<link id="ico" rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2322252a'/%3E%3Ccircle cx='24' cy='27' r='11' fill='%23d6b3c6'/%3E%3Ccircle cx='46' cy='21' r='5.5' fill='%23eceeef'/%3E%3Ccircle cx='40' cy='43' r='8' fill='%2395bfb9'/%3E%3C/svg%3E">
+<style>
+/*CSS*/
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hd">
+<div class="brand"><svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><rect x="1" y="1" width="62" height="62" rx="17" fill="var(--sf)" stroke="var(--ln)" stroke-width="2"/><circle cx="32" cy="32" r="22" fill="var(--ac)"/><g fill="var(--acx)"><circle cx="24" cy="27" r="6"/><circle cx="42" cy="24" r="3.8"/><circle cx="38" cy="42" r="5"/></g></svg><span>randomizer</span></div>
+<div class="hr"><button class="btn" id="sh-o">History</button><button class="btn mode" id="mode" aria-label="Change theme">System</button></div>
+</header>
+<nav class="nav" aria-label="Sections"><button class="nv on" data-t="pw"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V8a5 5 0 0110 0v3M5 11h14v9H5z"/></svg><span>Password</span></button><button class="nv" data-t="tb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4zM4 10h16M10 5v14"/></svg><span>Table</span></button><button class="nv" data-t="pk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M5 12h14M5 17h9"/></svg><span>Pick</span></button><button class="nv" data-t="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3.5"/><circle cx="9" cy="9" r="1.2"/><circle cx="15" cy="15" r="1.2"/><circle cx="12" cy="12" r="1.2"/></svg><span>Roll</span></button><button class="nv" data-t="tk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v4M12 16v4M4 12h4M16 12h4M7 7l2.5 2.5M14.5 14.5L17 17M17 7l-2.5 2.5M9.5 14.5L7 17"/></svg><span>Tools</span></button></nav>
+
+<main id="pw-v">
+<section class="out stk">
+<div id="pw-out" class="big"></div>
+<div id="pw-list" class="list"></div>
+<div class="meter"><i id="pw-m"></i></div>
+<div class="bar"><span id="pw-e" class="ent"></span><button class="btn" id="pw-hd">Hide</button><button class="btn" id="pw-cp">Copy</button><button class="ball" id="pw-g" aria-label="Generate new"><svg viewBox="0 0 64 64"><circle cx="24" cy="27" r="11"/><circle cx="46" cy="21" r="5.5"/><circle cx="40" cy="43" r="8"/></svg></button></div>
+</section>
+<section class="panel" id="pw-ctl"></section>
+</main>
+
+<main id="tb-v" hidden>
+<section class="out">
+<p class="sub" id="tb-info"></p>
+<div class="tw"><table id="tb-t"></table></div>
+<div class="bar" style="margin-top:18px"><span class="ent" id="tb-fm"></span><button class="btn" id="tb-cp">Copy</button><button class="btn" id="tb-dl" hidden>Save file</button><button class="ball" id="tb-g" aria-label="Generate new"><svg viewBox="0 0 64 64"><circle cx="24" cy="27" r="11"/><circle cx="46" cy="21" r="5.5"/><circle cx="40" cy="43" r="8"/></svg></button></div>
+</section>
+<section class="panel" id="tb-ctl">
+<div class="f"><span class="lb">Rows</span><div class="sl" id="tb-rows"></div></div>
+<div class="f"><span class="lb">Header row</span><div class="row" id="tb-hdr"></div></div>
+<div class="f"><span class="lb">Seed, optional: the same seed repeats the same table</span><div id="tb-seed"></div></div>
+<div class="f full"><span class="lb">Columns</span><div id="cols"></div><div><button class="add" id="add">Add column</button></div></div>
+</section>
+</main>
+<main id="pk-v" hidden>
+<section class="out stk">
+<div id="pk-out" class="big txt"></div>
+<div class="bar" style="margin-top:24px"><span class="ent" id="pk-e"></span><button class="btn" id="pk-cp">Copy</button><button class="ball" id="pk-g" aria-label="Draw"><svg viewBox="0 0 64 64"><circle cx="24" cy="27" r="11"/><circle cx="46" cy="21" r="5.5"/><circle cx="40" cy="43" r="8"/></svg></button></div>
+</section>
+<section class="panel" id="pk-ctl">
+<div class="f full"><span class="lb">Your list, one item per line or separated by commas</span><textarea id="pk-t" class="in ta" spellcheck="false" placeholder="Anna&#10;Ben&#10;Chloe"></textarea></div>
+</section>
+</main>
+
+<main id="rl-v" hidden>
+<section class="out stk">
+<div id="rl-out" class="big txt"></div>
+<div class="bar" style="margin-top:24px"><span class="ent" id="rl-e"></span><button class="btn" id="rl-cp">Copy</button><button class="ball" id="rl-g" aria-label="Roll"><svg viewBox="0 0 64 64"><circle cx="24" cy="27" r="11"/><circle cx="46" cy="21" r="5.5"/><circle cx="40" cy="43" r="8"/></svg></button></div>
+</section>
+<section class="panel" id="rl-ctl"></section>
+</main>
+<main id="tk-v" hidden>
+<section class="out stk">
+<div id="tk-out" class="big"></div>
+<div id="tk-sw" class="sw" hidden></div>
+<div id="tk-list" class="list"></div>
+<div class="bar" style="margin-top:24px"><span class="ent" id="tk-e"></span><button class="btn" id="tk-cp">Copy</button><button class="ball" id="tk-g" aria-label="Generate"><svg viewBox="0 0 64 64"><circle cx="24" cy="27" r="11"/><circle cx="46" cy="21" r="5.5"/><circle cx="40" cy="43" r="8"/></svg></button></div>
+</section>
+<section class="panel" id="tk-ctl"></section>
+</main>
+</div>
+<section class="sh" id="sh" aria-label="Recent results" aria-hidden="true">
+<div class="sh-h"><span class="sh-t">Recent results</span><button class="btn" id="sh-cp">Copy all</button><button class="btn" id="sh-cl">Clear</button><button class="btn" id="sh-x" aria-label="Close history">×</button></div>
+<div class="sh-l" id="sh-l"></div>
+</section>
+
+<script>
+/*JS*/
+</script>
+</body>
+</html>
