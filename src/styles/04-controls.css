@@ -10,8 +10,8 @@
 .chip{border:1px solid var(--ln);background:transparent;border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500;color:var(--mut);transition:all .15s}
 .chip:hover{border-color:var(--ink);color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
-.in{width:100%;background:var(--sf);border:1px solid var(--ln);border-radius:10px;padding:9px 12px;min-height:42px}
-.in:hover{border-color:var(--mut)}
+.in{width:100%;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;min-height:42px}
+.in:hover{border-color:var(--ink)}
 .in.num{width:80px;flex:none;text-align:center;-moz-appearance:textfield}
 .in.num::-webkit-outer-spin-button,.in.num::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .sl{display:flex;align-items:center;gap:16px;max-width:420px}
@@ -27,3 +27,6 @@
 .in{font-size:16px}
 .btn,.dd-b{min-height:46px}
 .chip{min-height:40px}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:disabled:hover{border-color:var(--ln)}
+.in::placeholder{color:var(--mut);opacity:1}

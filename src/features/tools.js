@@ -1,9 +1,10 @@
 import {copy} from '../core/clipboard.js';
 import {$,el} from '../core/dom.js';
 import {hist} from '../core/history.js';
+import {announce} from '../core/live.js';
 import {rnd} from '../core/rng.js';
 import {saveJSON,restore} from '../core/storage.js';
-import {fld,txt,dd,slider,spin} from '../ui/controls.js';
+import {fld,txt,dd,seg,slider,spin} from '../ui/controls.js';
 import {paint} from '../ui/paint.js';
 
 export const AZ='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789',AB={hex:'0123456789abcdef',b64:AZ+'-_',b62:AZ};
@@ -28,18 +29,16 @@ sw.hidden=true;o.hidden=false;
 const r=makeTokens(Tk);
 tkcur=r.join('\n');o.innerHTML=paint(r[0]);o.style.fontSize=r[0].length>60?'16px':r[0].length>36?'19px':'';
 r.slice(1).forEach(t=>{const x=el('button','li');x.innerHTML=paint(t);x.onclick=()=>copy(t,x);l.append(x)});
-e.textContent=Tk.kind==='uuid'?'122 random bits':Math.round(Tk.len*Math.log2(AB[Tk.kind].length))+' bits of entropy';hist('tk',tkcur)}
+e.textContent=Tk.kind==='uuid'?'122 random bits':Math.round(Tk.len*Math.log2(AB[Tk.kind].length))+' bits of entropy';hist('tk',tkcur);announce((r.length>1?r.length+' tokens':'Token')+' generated, '+e.textContent)}
 else{
 o.hidden=true;sw.hidden=false;sw.textContent='';
 const cs=makePalette(Tk);
 cs.forEach(c=>{const b=el('button','',c),n=[1,3,5].map(i=>parseInt(c.slice(i,i+2),16));b.style.background=c;b.style.color=(.299*n[0]+.587*n[1]+.114*n[2])/255>.6?'#111':'#fff';b.onclick=()=>copy(c,b);sw.append(b)});
-tkcur=cs.join('\n');e.textContent=cs.length+' colors, tap one to copy it';hist('tk',tkcur)}}
+tkcur=cs.join('\n');e.textContent=cs.length+' colors, tap one to copy it';hist('tk',tkcur);announce(cs.length+' colors: '+cs.join(', '))}}
 (function(){
 const c=$('#tk-ctl'),gp=(m,l,x,full)=>{const g=fld(l,x);g.dataset.m=m;if(full)g.classList.add('full');c.append(g)};
 const sy=()=>c.querySelectorAll('[data-m]').forEach(g=>g.hidden=!g.dataset.m.split(' ').includes(Tk.mode==='color'?'color':Tk.kind==='uuid'?'token':'token len'));
-const seg=el('div','tabs');
-[['token','Token'],['color','Color palette']].forEach(([k,l])=>{const b=el('button','tab'+(k===Tk.mode?' on':''),l);b.onclick=()=>{Tk.mode=k;seg.childNodes.forEach(x=>x.classList.toggle('on',x===b));sy();runTk()};seg.append(b)});
-const sw=el('div','f full');sw.append(el('span','lb','What to make'),seg);c.append(sw);
+const sw=fld('What to make',seg([['token','Token'],['color','Color palette']],Tk.mode,k=>{Tk.mode=k;sy();runTk()}));sw.classList.add('full');c.append(sw);
 gp('token len','Kind',dd([['b62','Alphanumeric'],['hex','Hex'],['b64','Base64, URL-safe'],['uuid','UUID v4']],Tk.kind,v=>{Tk.kind=v;sy();runTk()}));
 gp('token len','Length',slider(Tk,'len',8,128,()=>runTk()));
 gp('token len','Prefix, like sk_live_',txt(Tk.pre,v=>{Tk.pre=v;runTk()},'optional'));

@@ -11,7 +11,7 @@ const v="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='1.
 $('#ico').href='data:image/svg+xml,'+encodeURIComponent(v)}
 function applyTheme(){
 document.documentElement.dataset.theme=mode==='system'?(mq.matches?'dark':'light'):mode;
-$('#mode').textContent=mode[0].toUpperCase()+mode.slice(1);setIcon()}
+$('#mode').textContent=mode[0].toUpperCase()+mode.slice(1);$('#mode').setAttribute('aria-label','Theme: '+mode+'. Press to change.');setIcon()}
 mq.addEventListener('change',()=>{if(mode==='system')applyTheme()});
 $('#mode').onclick=()=>{mode={system:'light',light:'dark',dark:'system'}[mode];set('rz-mode',mode);applyTheme()};
 applyTheme()}

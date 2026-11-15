@@ -1,6 +1,7 @@
 import {installDropdownClose} from './ui/controls.js';
 import {initTheme} from './core/theme.js';
 import {initHistory} from './core/history.js';
+import {liveOn} from './core/live.js';
 import {initShell} from './app.js';
 import * as password from './features/password.js';
 import * as table from './features/table.js';
@@ -14,3 +15,4 @@ initHistory();
 initShell();
 initTheme();
 features.forEach(f=>f.refresh());
+liveOn();

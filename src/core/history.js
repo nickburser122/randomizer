@@ -1,5 +1,6 @@
 import {copy} from '../core/clipboard.js';
 import {$,el} from '../core/dom.js';
+import {announce} from '../core/live.js';
 import {loadJSON,saveJSON} from '../core/storage.js';
 
 export const TABN={pw:'Password',tb:'Table',pk:'Pick',rl:'Roll',tk:'Tools'};
@@ -17,12 +18,16 @@ H.items.forEach(x=>{const b=el('button','li');b.append(el('span','h-t',TABN[x.t]
 export function hist(t,v){
 const n=pushItem(H.items,t,v,H.max);if(n===H.items)return;
 H.items=n;saveH();if($('#sh').classList.contains('on'))drawH()}
+let opener=null;
 function shToggle(on){
-const s=$('#sh');s.classList.toggle('on',on);s.setAttribute('aria-hidden',on?'false':'true');if(on)drawH()}
+const s=$('#sh'),was=s.classList.contains('on');
+s.classList.toggle('on',on);s.setAttribute('aria-hidden',on?'false':'true');$('#sh-o').setAttribute('aria-expanded',on?'true':'false');
+if(on===was)return;
+if(on){opener=document.activeElement;drawH();s.focus()}else if(opener){const o=opener;opener=null;if(o.isConnected)o.focus()}}
 export function initHistory(){
 H.items=cleanItems(loadJSON('rz-h',null),H.max);
 $('#sh-o').onclick=()=>shToggle(!$('#sh').classList.contains('on'));
 $('#sh-x').onclick=()=>shToggle(false);
 $('#sh-cp').onclick=function(){if(!H.items.length)return;copy(H.items.map(x=>x.v).join('\n\n'),this)};
-$('#sh-cl').onclick=()=>{H.items=[];saveH();drawH()};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')shToggle(false)})}
+$('#sh-cl').onclick=()=>{H.items=[];saveH();drawH();announce('History cleared')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh').classList.contains('on'))shToggle(false)})}

@@ -5,4 +5,5 @@ export const rnd=n=>{if(n<=1)return 0;if(PR)return Math.floor(PR()*n);if(n>42949
 export const pick=a=>a[rnd(a.length)];
 export const rf=()=>{if(PR)return PR();const a=new Uint32Array(2);crypto.getRandomValues(a);return((a[0]>>>5)*67108864+(a[1]>>>6))/9007199254740992};
 export const isSeeded=()=>!!PR;
-export function withSeed(seed,fn){PR=seed?mul(hs(String(seed))):null;try{return fn()}finally{PR=null}}
+export const seeded=seed=>{const g=seed?mul(hs(String(seed))):null;return fn=>{const p=PR;PR=g;try{return fn()}finally{PR=p}}};
+export const withSeed=(seed,fn)=>seeded(seed)(fn);

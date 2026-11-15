@@ -1,12 +1,13 @@
 import {copy} from '../core/clipboard.js';
 import {$,el} from '../core/dom.js';
-import {rnd,pick,rf,isSeeded,withSeed} from '../core/rng.js';
+import {announce} from '../core/live.js';
+import {rnd,pick,rf,isSeeded,seeded} from '../core/rng.js';
 import {loadJSON,saveJSON} from '../core/storage.js';
 import {AL,AN} from '../data/alphabets.js';
 import {FN,LN,DM} from '../data/names.js';
 import {W} from '../data/words.js';
 import {plan,fill,renameRefs,key} from '../features/template.js';
-import {fld,txt,chip,dd,slider,spin} from '../ui/controls.js';
+import {fld,txt,chip,dd,slider,spin,label} from '../ui/controls.js';
 
 export const T={
 int:{n:'Integer',p:[['Min',0],['Max',100]]},
@@ -42,18 +43,40 @@ phone:v=>String(v[0]).replace(/#/g,()=>rnd(10)),
 normal:v=>{const z=Math.sqrt(-2*Math.log(1-rf()))*Math.cos(2*Math.PI*rf());return((+v[0]||0)+z*(+v[1]||0)).toFixed(Math.max(0,Math.min(10,Math.round(+v[2])||0)))},
 wchoice:v=>{const o=String(v[0]).split(',').map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)\s*\*\s*(\d+(?:\.\d+)?)$/);return m&&m[1]?{t:m[1],w:+m[2]||1}:{t:x,w:1}});if(!o.length)return'';let r=rf()*o.reduce((q,x)=>q+x.w,0);for(const x of o){r-=x.w;if(r<0)return x.t}return o[o.length-1].t}
 };
-export const mk=(name,t)=>({name,t:type(t),v:T[type(t)].p.map(p=>p[1])});
+export const MAX_ROWS=100000,MAX_COLS=60,SCHEMA_MAX=100000,SYNC_ROWS=2000,CHUNK=250;
+export const defv=t=>T[type(t)].p.map(p=>String(p[1]));
+export const mk=(name,t)=>({name,t:type(t),v:defv(t),nul:''});
+export const clampRows=n=>Math.max(1,Math.min(MAX_ROWS,Math.round(+n)||1));
 export const FORMATS=['tsv','csv','json','md','sql'];
 export const EXT={tsv:'txt',csv:'csv',json:'json',md:'md',sql:'txt'};
-export const type=t=>T[t]?t:'word';
+export const type=t=>Object.prototype.hasOwnProperty.call(T,t)?t:'word';
+const str=(x,max)=>typeof x==='string'?x.slice(0,max):typeof x==='number'&&Number.isFinite(x)?String(x):'';
 export function readSaved(o){
 const r={tb:{}};if(!o||typeof o!=='object')return r;
-if(Array.isArray(o.cols))r.cols=o.cols.filter(c=>c&&typeof c==='object').map(c=>({name:String(c.name??''),t:type(c.t),v:Array.isArray(c.v)?c.v.slice():mk('','word').v,nul:c.nul}));
-if(o.n>=1&&o.n<=1000)r.tb.n=Math.round(o.n);
+if(Array.isArray(o.cols))r.cols=o.cols.slice(0,MAX_COLS).filter(c=>c&&typeof c==='object').map(c=>{const t=type(c.t),v=Array.isArray(c.v)?c.v:[];return{name:str(c.name,80),t,v:defv(t).map((d,j)=>typeof v[j]==='string'||typeof v[j]==='number'?str(v[j],2000):d),nul:str(c.nul,6)}});
+if(typeof o.n==='number'&&o.n>=1&&o.n<=MAX_ROWS)r.tb.n=Math.round(o.n);
 if(o.hdr===0||o.hdr===1)r.tb.hdr=o.hdr;
 if(FORMATS.includes(o.fmt))r.tb.fmt=o.fmt;
-if(typeof o.seed==='string')r.tb.seed=o.seed;
+if(typeof o.seed==='string')r.tb.seed=o.seed.slice(0,200);
 return r}
+export const snapshot=(cols,tb)=>({cols:cols.map(c=>({name:c.name,t:c.t,v:c.v,nul:c.nul||''})),n:tb.n,hdr:tb.hdr,fmt:tb.fmt,seed:tb.seed});
+export const exportSchema=(cols,tb)=>JSON.stringify(snapshot(cols,tb),null,2);
+export function importSchema(text){
+if(typeof text!=='string'||!text.trim())return{error:'Paste a schema first.'};
+if(text.length>SCHEMA_MAX)return{error:'That is too large to be a schema. The limit is '+SCHEMA_MAX.toLocaleString('en-US')+' characters.'};
+let o;try{o=JSON.parse(text)}catch(e){return{error:'That is not valid JSON.'}}
+if(!o||typeof o!=='object'||Array.isArray(o)||!Array.isArray(o.cols))return{error:'No columns found. Copy a schema from this page, then paste it here.'};
+if(!o.cols.length)return{error:'The schema has no columns.'};
+if(o.cols.length>MAX_COLS)return{error:'Too many columns. The limit is '+MAX_COLS+'.'};
+const s=readSaved(o);
+if(!s.cols.length)return{error:'The schema has no usable columns.'};
+return s}
+export function rowStream(cols,seed){
+const pl=plan(cols),run=seeded(seed);let i=0;
+return{pl,step:k=>run(()=>{const out=[];
+for(let q=0;q<k;q++,i++){const r=cols.map(()=>'');for(const j of pl.order){const c=cols[j];if(+c.nul>0&&rf()*100<+c.nul)continue;r[j]=c.t==='tpl'?fill(pl.P[j],r):G[c.t](c.v,i)}out.push(r)}
+return out})}}
+export const makeRows=(cols,n,seed)=>rowStream(cols,seed).step(n);
 export function format(f,cols,rows,hdr){
 if(!FORMATS.includes(f))f='tsv';
 const h=cols.map(c=>c.name||'column');
@@ -68,48 +91,76 @@ rows.forEach(r=>o.push(L(r)));return o.join('\n')}
 export function init(){
 const tb={n:20,hdr:1,fmt:'tsv',seed:''};
 const saveT=()=>saveJSON('rz-t',{cols,n:tb.n,hdr:tb.hdr,fmt:tb.fmt,seed:tb.seed});
-let cols=[mk('id','seq'),mk('name','name'),mk('email','tpl'),mk('score','int'),mk('status','choice')],rows=[];
+let cols=[mk('id','seq'),mk('name','name'),mk('email','tpl'),mk('score','int'),mk('status','choice')],rows=[],busy=false,run=0;
 cols[4].v[0]='new,active,paused';
 {const sv=readSaved(loadJSON('rz-t',null));if(sv.cols)cols=sv.cols;Object.assign(tb,sv.tb)}
 let tplIn=[],notes=[],refRows=[];
+const fmt=n=>n.toLocaleString('en-US');
 function buildCols(){
 const w=$('#cols');w.textContent='';tplIn=[];notes=[];refRows=[];
 cols.forEach((c,i)=>{
-const r=el('div','col'),nm=fld('Name',txt(c.name,v=>{const o=c.name;c.name=v;renameRefs(cols,o,v).forEach(j=>{if(tplIn[j])tplIn[j].value=cols[j].v[0]});drawRefs();if(cols.some(x=>x.t==='tpl'))make();else render()},'column'));nm.classList.add('nm');r.append(nm);
-r.append(fld('Type',dd(Object.entries(T).map(([k,v])=>[k,v.n]),c.t,v=>{c.t=v;c.v=T[v].p.map(p=>p[1]);buildCols();make()})));
+const r=el('div','col'),x=el('button','rm','×');
+const tag=()=>{const nm=c.name.trim(),sfx=nm?', '+nm:'';r.setAttribute('aria-label','Column '+(i+1)+sfx);x.setAttribute('aria-label','Remove column '+(i+1)+sfx)};
+r.setAttribute('role','group');tag();
+const nm=fld('Name',txt(c.name,v=>{const o=c.name;c.name=v;tag();renameRefs(cols,o,v).forEach(j=>{if(tplIn[j])tplIn[j].value=cols[j].v[0]});drawRefs();if(cols.some(x=>x.t==='tpl'))make();else render()},'column'));nm.classList.add('nm');r.append(nm);
+r.append(fld('Type',dd(Object.entries(T).map(([k,v])=>[k,v.n]),c.t,v=>{c.t=v;c.v=defv(v);buildCols();make()})));
 const spec=T[c.t]||T.word;spec.p.forEach((p,j)=>{const inp=txt(c.v[j],v=>{c.v[j]=v;make()}),f=fld(p[0],inp);if(c.t==='choice'||c.t==='pat'||c.t==='tpl')f.classList.add('wide');if(c.t==='tpl')tplIn[i]=inp;r.append(f)});
 r.append(fld('Empty %',txt(c.nul||'',v=>{c.nul=v;make()},'0')));
-const x=el('button','rm','×');x.setAttribute('aria-label','Remove column');x.onclick=()=>{cols.splice(i,1);buildCols();make()};r.append(x);
-if(c.t==='tpl'){const b=el('div','blk'),rr=el('div','row refs'),nt=el('p','sub note');b.append(rr,el('p','sub','Tap a column to insert it. Add filters with a bar: {name|first|lower}. Filters: first, last, initial, lower, upper, cap, slug. {#} adds a random digit, {?} a random letter.'),nt);refRows.push([i,rr]);notes[i]=nt;r.append(b)}
+x.onclick=()=>{cols.splice(i,1);buildCols();make()};r.append(x);
+if(c.t==='tpl'){const b=el('div','blk'),rr=el('div','row refs'),nt=el('p','sub note');nt.setAttribute('role','status');b.append(rr,el('p','sub','Tap a column to insert it. Add filters with a bar: {name|first|lower}. Filters: first, last, initial, lower, upper, cap, slug. {#} adds a random digit, {?} a random letter.'),nt);refRows.push([i,rr]);notes[i]=nt;r.append(b)}
 w.append(r)});drawRefs()}
 function drawRefs(){refRows.forEach(([i,rr])=>{rr.textContent='';cols.forEach((o,j)=>{if(j===i||!key(o.name))return;const b=el('button','chip ref','{'+o.name.trim()+'}');b.type='button';b.onclick=()=>{const t=tplIn[i],s='{'+o.name.trim()+'}',a=t.selectionStart??t.value.length,z=t.selectionEnd??a;t.value=t.value.slice(0,a)+s+t.value.slice(z);t.focus();t.setSelectionRange(a+s.length,a+s.length);t.oninput()};rr.append(b)})})}
+function setBusy(b){busy=b;$('#tb-cp').disabled=b;$('#tb-dl').disabled=b;$('.tw').setAttribute('aria-busy',b?'true':'false')}
+function finish(out,n){
+rows=out;setBusy(false);render();
+announce(fmt(n)+' rows, '+cols.length+' columns ready')}
 function make(){
-const n=Math.max(1,Math.min(10000,Math.round(+tb.n)||1)),pl=plan(cols);
-rows=withSeed(tb.seed,()=>{const out=[];
-for(let i=0;i<n;i++){const r=cols.map(()=>'');for(const j of pl.order){const c=cols[j];if(+c.nul>0&&rf()*100<+c.nul)continue;r[j]=c.t==='tpl'?fill(pl.P[j],r):G[c.t](c.v,i)}out.push(r)}
-return out});
+const n=clampRows(tb.n),stream=rowStream(cols,tb.seed),pl=stream.pl,id=++run;
 notes.forEach((nt,j)=>{if(!nt)return;const e=pl.P[j]?[...new Set(pl.P[j].errs)]:[];nt.textContent=e.length?'Check this: '+e.join('; ')+'.':'';nt.hidden=!e.length});
-saveT();render()}
+saveT();
+if(n<=SYNC_ROWS){finish(stream.step(n),n);return}
+const out=[];setBusy(true);
+(function tick(){
+if(id!==run)return;
+const t0=performance.now();
+while(out.length<n&&performance.now()-t0<12)out.push(...stream.step(Math.min(CHUNK,n-out.length)));
+if(out.length<n){$('#tb-info').textContent='Generating '+fmt(out.length)+' of '+fmt(n)+' rows ('+Math.floor(out.length/n*100)+'%)';setTimeout(tick,0);return}
+finish(out,n)})()}
 function render(){
 const t=$('#tb-t');t.textContent='';
-if(tb.hdr&&cols.length){const th=el('thead'),tr=el('tr');cols.forEach(c=>tr.append(el('th',NUM.has(c.t)?'n':'',c.name||'column')));th.append(tr);t.append(th)}
+if(tb.hdr&&cols.length){const th=el('thead'),tr=el('tr');cols.forEach(c=>{const h=el('th',NUM.has(c.t)?'n':'',c.name||'column');h.scope='col';tr.append(h)});th.append(tr);t.append(th)}
 const bd=el('tbody');
 rows.slice(0,100).forEach(r=>{const tr=el('tr');r.forEach((v,j)=>tr.append(el('td',NUM.has(cols[j].t)?'n':'',v)));bd.append(tr)});
 t.append(bd);
-$('#tb-info').textContent=cols.length?rows.length+' rows, '+cols.length+' columns'+(rows.length>100?'. Showing the first 100; copy and save include all rows.':''):'Add a column to start.'}
-(function(){
-$('#tb-rows').append(slider(tb,'n',1,1000,()=>make()));
-$('#tb-seed').append(txt(tb.seed,v=>{tb.seed=v;make()},'leave empty for random'));
-$('#tb-hdr').append(chip('Include header',tb,'hdr',()=>{saveT();render()}));
-$('#tb-fm').append(dd([['tsv','Copy as TSV'],['csv','Copy as CSV'],['json','Copy as JSON'],['md','Copy as Markdown'],['sql','Copy as SQL']],tb.fmt,v=>{tb.fmt=v;saveT();const c=$('#tb-cp');c.dataset.l=c.textContent='Copy'}));
+if(!busy)$('#tb-info').textContent=cols.length?fmt(rows.length)+' rows, '+cols.length+' columns'+(rows.length>100?'. Showing the first 100; copy and save include all rows.':''):'Add a column to start.'}
+function buildTb(){
+const rw=$('#tb-rows'),sd=$('#tb-seed'),hd=$('#tb-hdr'),fm=$('#tb-fm');
+[rw,sd,hd,fm].forEach(c=>c.textContent='');
+const sl=slider(tb,'n',1,1000,()=>make(),MAX_ROWS);rw.append(sl);label(sl,'lb-rows','Rows');
+const si=txt(tb.seed,v=>{tb.seed=v;make()},'leave empty for random');sd.append(si);label(si,'lb-seed','Seed');
+hd.append(chip('Include header',tb,'hdr',()=>{saveT();render()}));label(hd,'lb-hdr','Header row');
+fm.append(dd([['tsv','Copy as TSV'],['csv','Copy as CSV'],['json','Copy as JSON'],['md','Copy as Markdown'],['sql','Copy as SQL']],tb.fmt,v=>{tb.fmt=v;saveT();const c=$('#tb-cp');c.dataset.l=c.textContent='Copy'}));}
+function schemaError(m){const e=$('#sc-er');e.textContent=m;e.hidden=!m}
+function applySchema(){
+const s=importSchema($('#sc-ta').value);
+if(s.error){schemaError(s.error);return}
+schemaError('');cols=s.cols;Object.assign(tb,s.tb);
+$('#sc-ta').value='';$('#sc-box').hidden=true;$('#sc-pa').setAttribute('aria-expanded','false');
+buildTb();buildCols();make();announce('Schema applied, '+cols.length+' columns')}
+buildTb();
 $('#add').onclick=()=>{cols.push(mk('column '+(cols.length+1),'int'));buildCols();make()};
 $('#tb-g').onclick=function(){spin(this);make()};
-$('#tb-cp').onclick=function(){copy(format(tb.fmt,cols,rows,tb.hdr),this)};
-buildCols()})();
+$('#tb-cp').onclick=function(){if(!busy)copy(format(tb.fmt,cols,rows,tb.hdr),this)};
+$('#sc-cp').onclick=function(){copy(exportSchema(cols,tb),this)};
+$('#sc-pa').onclick=function(){const box=$('#sc-box'),open=box.hidden;box.hidden=!open;this.setAttribute('aria-expanded',open?'true':'false');schemaError('');if(open)$('#sc-ta').focus()};
+$('#sc-ap').onclick=applySchema;
+$('#sc-ta').oninput=()=>schemaError('');
+buildCols();
 $('#tb-dl').hidden=false;
 let DL=null;
 if(window.claude&&claude.use)claude.use('downloads').then(d=>{DL=d}).catch(()=>{});
 $('#tb-dl').onclick=()=>{
+if(busy)return;
 const data=format(tb.fmt,cols,rows,tb.hdr),name='randomizer.'+EXT[tb.fmt];
 if(DL){DL.save({filename:name,data}).catch(()=>{});return}
 const a=el('a'),u=URL.createObjectURL(new Blob([data],{type:'text/plain;charset=utf-8'}));

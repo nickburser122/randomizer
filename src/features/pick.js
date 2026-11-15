@@ -1,9 +1,10 @@
 import {copy} from '../core/clipboard.js';
 import {$,el} from '../core/dom.js';
 import {hist} from '../core/history.js';
+import {announce} from '../core/live.js';
 import {rnd,rf} from '../core/rng.js';
 import {get,set,saveJSON,restore} from '../core/storage.js';
-import {fld,chip,slider,spin} from '../ui/controls.js';
+import {fld,chip,seg,slider,spin} from '../ui/controls.js';
 
 export function parseItems(text,dedupe){let a=text.split(/[\n,]+/).map(x=>x.trim()).filter(Boolean).map(x=>{const m=x.match(/^(.*?)\s*\*\s*(\d+(?:\.\d+)?)$/);return m&&m[1]?{t:m[1],w:+m[2]||1}:{t:x,w:1}});if(dedupe){const z=new Set();a=a.filter(x=>!z.has(x.t)&&z.add(x.t))}return a}
 export function draw(a,n){const pool=a.slice(),out=[];while(out.length<n&&pool.length){let r=rf()*pool.reduce((q,x)=>q+x.w,0),i=0;for(;i<pool.length-1;i++){r-=pool[i].w;if(r<0)break}out.push(pool.splice(i,1)[0])}return out}
@@ -27,11 +28,9 @@ const a=parseItems(pkt.value,K.dedupe),o=$('#pk-out'),e=$('#pk-e');
 o.className='big txt';
 if(!a.length){pkcur='';o.className='big empty';o.textContent='Paste or type a list below, then press the ball.';e.textContent='';return}
 const {lines,note}=pickResult(a,K,used);
-pkcur=lines.join('\n');o.textContent=pkcur;o.classList.toggle('sm',lines.length>1);e.textContent=note;hist('pk',pkcur)}
+pkcur=lines.join('\n');o.textContent=pkcur;o.classList.toggle('sm',lines.length>1);e.textContent=note;hist('pk',pkcur);announce(lines.join('. '))}
 (function(){
-const seg=el('div','tabs');
-[['pick','Pick'],['shuffle','Shuffle'],['teams','Teams']].forEach(([k,l])=>{const b=el('button','tab'+(k===K.mode?' on':''),l);b.onclick=()=>{K.mode=k;seg.childNodes.forEach(x=>x.classList.toggle('on',x===b));kSync();saveK();runPk()};seg.append(b)});
-const sw=el('div','f full');sw.append(el('span','lb','What to do'),seg);pkc.append(sw);
+const sw=fld('What to do',seg([['pick','Pick'],['shuffle','Shuffle'],['teams','Teams']],K.mode,k=>{K.mode=k;kSync();saveK();runPk()}));sw.classList.add('full');pkc.append(sw);
 const gp=(k,l,c,full)=>{const g=fld(l,c);g.dataset.k=k;if(full)g.classList.add('full');pkc.append(g)};
 gp('pick','Items to pick',slider(K,'n',1,20,()=>{saveK();runPk()}));
 gp('teams','Number of teams',slider(K,'teams',2,12,()=>{saveK();runPk()}));
