@@ -29,4 +29,5 @@ if(/<\/script>/i.test(js))throw new Error('Bundle contains a closing script tag'
 
 mkdirSync('dist',{recursive:true});
 writeFileSync('dist/randomizer.html',html);
-console.log('dist/randomizer.html',Math.round(html.length/1024)+' KB, js '+Math.round(js.length/1024)+' KB, css '+Math.round(css.length/1024)+' KB');
+writeFileSync('dist/index.html',html);
+console.log('dist/randomizer.html and dist/index.html',Math.round(html.length/1024)+' KB, js '+Math.round(js.length/1024)+' KB, css '+Math.round(css.length/1024)+' KB');

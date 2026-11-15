@@ -17,6 +17,10 @@ npm run check      npm test, then smoke
 
 `parity` compares every visible element (computed styles, text, position) of a baseline build against `dist/` in both themes, at phone and desktop width, across all tabs, color mode and the history drawer. Run it before and after any change that should not alter the interface, such as moving CSS or splitting a module.
 
+## Deploy
+
+`vercel.json` sets the build command and the output directory (`dist`). The build writes the same file as `dist/index.html` and `dist/randomizer.html`, so `/` and `/randomizer.html` both work. Any static host works the same way: publish `dist/`.
+
 ## Layout
 
 ```
