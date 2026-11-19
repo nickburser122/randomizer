@@ -4,8 +4,13 @@
 .col .f:nth-child(1){width:130px}
 .col .f:nth-child(2){width:160px}
 .col .f.wide{flex:1 1 220px;width:auto}
-.rm{margin-left:auto;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--ln);background:transparent;font-size:20px;line-height:1;color:var(--mut)}
+.ops{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.rm{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;flex:none;border-radius:50%;border:1px solid var(--ln);background:transparent;font-size:20px;line-height:1;color:var(--mut)}
+.rm svg{width:18px;height:18px}
 .rm:hover{color:var(--ac);border-color:var(--ac)}
+.rm:disabled{opacity:.4}
+.rm:disabled:hover{color:var(--mut);border-color:var(--ln)}
+.col>.note{flex:1 1 100%;margin:0;color:var(--ac)}
 .col .blk{flex:1 1 100%;display:flex;flex-direction:column;gap:8px}
 .col .blk .sub{margin:0;font-size:12.5px}
 .col .blk .note{color:var(--ac)}
@@ -22,4 +27,15 @@ th.n{text-align:right}
 .sub{margin:0 0 16px;font-size:13.5px;color:var(--mut)}
 #tb-fm .dd{max-width:200px}
 .sw{display:grid;grid-template-columns:repeat(auto-fit,minmax(54px,1fr));gap:8px}
-.sw button{border:0;border-radius:14px;aspect-ratio:1/1.25;display:flex;align-items:flex-end;padding:8px;font:500 11px 'Geist Mono',ui-monospace,monospace}
+.sw .c{display:flex;flex-direction:column;gap:6px}
+.sw .cp{width:100%;border:0;border-radius:14px;aspect-ratio:1/1.25;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:3px;padding:8px;text-align:left;font:500 11px 'Geist Mono',ui-monospace,monospace}
+.sw .cp small{font:500 10.5px 'Instrument Sans',system-ui,sans-serif}
+.sw .lk{width:100%;height:36px;border:1px solid var(--ln);border-radius:10px;background:transparent;color:var(--mut);display:flex;align-items:center;justify-content:center;padding:0}
+.sw .lk:hover{border-color:var(--ink);color:var(--ink)}
+.sw .lk[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.sw .lk svg{width:18px;height:18px}
+.odds{display:flex;flex-direction:column;gap:10px}
+.odds .sub{margin:0}
+.hist{display:flex;align-items:flex-end;gap:2px;height:72px;padding:0 2px;border-bottom:1px solid var(--ln)}
+.hist i{flex:1;min-width:2px;background:var(--bd);border-radius:2px 2px 0 0}
+.hist i.on{background:var(--ac)}

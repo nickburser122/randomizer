@@ -1,11 +1,13 @@
 import {el} from '../core/dom.js';
+import {t} from '../core/i18n.js';
 
 let uid=0;
 export function label(c,id,l){
 if(c.matches('input,textarea')){c.setAttribute('aria-labelledby',id);return}
-if(c.classList.contains('sl')){const[r,n]=c.children;r.setAttribute('aria-labelledby',id);n.setAttribute('aria-label',l+', typed value');return}
-if(c.classList.contains('dd')){const b=c.querySelector('.dd-b');b.setAttribute('aria-labelledby',id+' '+b.id);return}
+if(c.classList.contains('sl')){const[r,n]=c.children;r.setAttribute('aria-labelledby',id);n.setAttribute('aria-label',t('{label}, typed value',{label:l}));return}
+if(c.classList.contains('dd')){const b=c.querySelector('.dd-b');b.setAttribute('aria-labelledby',id+' '+b.id);c.querySelector('[role=listbox]').setAttribute('aria-labelledby',id);return}
 if(c.tagName==='P')return;
+if(c.tagName==='BUTTON'){c.id=c.id||'c'+ ++uid;c.setAttribute('aria-labelledby',id+' '+c.id);return}
 c.setAttribute('role','group');c.setAttribute('aria-labelledby',id)}
 export const fld=(l,c)=>{const f=el('div','f'),s=el('span','lb',l),id='lb'+ ++uid;s.id=id;f.append(s,c);label(c,id,l);return f};
 export const txt=(v,on,ph)=>{const i=el('input','in');i.value=v;if(ph)i.placeholder=ph;i.autocomplete='off';i.spellcheck=false;i.oninput=()=>on(i.value);return i};
@@ -23,8 +25,8 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDD()});
 }
 export function dd(opts,val,on){
 const w=el('div','dd'),b=el('button','dd-b'),m=el('div','dd-m');
-b.type='button';b.id='dd'+ ++uid;b.setAttribute('aria-haspopup','listbox');b.setAttribute('aria-expanded','false');m.setAttribute('role','listbox');
-const set=v=>{const f=opts.find(o=>o[0]===v)||opts[0];b.textContent=f[1];m.childNodes.forEach(d=>{const s=d.dataset.v===f[0];d.classList.toggle('on',s);d.setAttribute('aria-selected',s?'true':'false')})};
+b.type='button';b.id='dd'+ ++uid;b.setAttribute('aria-haspopup','listbox');b.setAttribute('aria-expanded','false');m.setAttribute('role','listbox');m.setAttribute('aria-labelledby',b.id);
+const set=v=>{const f=opts.find(o=>o[0]===v)||opts[0];b.textContent=f[1];b.title=f[1];m.childNodes.forEach(d=>{const s=d.dataset.v===f[0];d.classList.toggle('on',s);d.setAttribute('aria-selected',s?'true':'false')})};
 const open=()=>{closeDD(w);w.classList.add('open');b.setAttribute('aria-expanded','true')};
 opts.forEach(([v,l])=>{
 const d=el('div','dd-o',l);d.dataset.v=v;d.tabIndex=-1;d.setAttribute('role','option');
@@ -48,3 +50,7 @@ n.oninput=()=>{if(n.value==='')return;s(n.value);on()};
 n.onblur=()=>{n.value=o[k]};
 n.value=s(o[k]);w.append(r,n);return w}
 export const spin=b=>{b.classList.remove('spin');void b.offsetWidth;b.classList.add('spin')};
+export function icon(d){
+const ns='http://www.w3.org/2000/svg',s=document.createElementNS(ns,'svg'),p=document.createElementNS(ns,'path');
+for(const[k,v]of Object.entries({viewBox:'0 0 24 24','aria-hidden':'true',focusable:'false',fill:'none',stroke:'currentColor','stroke-width':'1.8','stroke-linecap':'round','stroke-linejoin':'round'}))s.setAttribute(k,v);
+p.setAttribute('d',d);s.append(p);return s}

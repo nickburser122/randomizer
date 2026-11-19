@@ -2,6 +2,7 @@ import {installDropdownClose} from './ui/controls.js';
 import {initTheme} from './core/theme.js';
 import {initHistory} from './core/history.js';
 import {liveOn} from './core/live.js';
+import {translateDom} from './core/i18n.js';
 import {initShell} from './app.js';
 import * as password from './features/password.js';
 import * as table from './features/table.js';
@@ -9,6 +10,7 @@ import * as pick from './features/pick.js';
 import * as roll from './features/roll.js';
 import * as tools from './features/tools.js';
 
+translateDom();
 installDropdownClose();
 const features=[password,table,pick,roll,tools].map(f=>f.init());
 initHistory();

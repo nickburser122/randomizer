@@ -273,7 +273,7 @@ test('schema: export then import is a lossless round trip for every column type'
   assert.equal(back.error,undefined);
   assert.deepEqual(back.cols,cols);assert.deepEqual(back.tb,tb);
   assert.deepEqual(makeRows(back.cols,25,'abc'),makeRows(cols,25,'abc'));
-  assert.deepEqual(JSON.parse(text),{cols:cols.map(c=>({name:c.name,t:c.t,v:c.v,nul:c.nul})),...tb});
+  assert.deepEqual(JSON.parse(text),{cols:cols.map(c=>({name:c.name,t:c.t,v:c.v,nul:c.nul,u:c.u})),...tb});
 });
 test('schema: the saved shape of rz-t is accepted as it is',()=>{
   const saved={cols:[{name:'id',t:'seq',v:[1,1]},{name:'n',t:'int',v:['0','9'],nul:'5'}],n:30,hdr:1,fmt:'csv',seed:''};
@@ -459,8 +459,8 @@ test('lint: the comment scanner finds comments and ignores strings, regexes and 
   assert.ok(findCssComments('a{} /* c */').length>0);assert.equal(findCssComments('a{content:"/*"}').length,0);
 });
 test('lint: no source, test or build file contains a comment or Math.random',()=>{
-  const js=[...fileList('src').filter(f=>f.endsWith('.js')),...fileList('test').filter(f=>f.endsWith('.mjs')),'build.mjs'];
-  assert.ok(js.length>20);
+  const js=[...fileList('src').filter(f=>f.endsWith('.js')),...fileList('test').filter(f=>f.endsWith('.mjs')),...fileList('scripts').filter(f=>f.endsWith('.mjs')),'build.mjs'];
+  assert.ok(js.length>25);assert.ok(js.includes('scripts/icons.mjs'));assert.ok(js.includes('test/platform.test.mjs'));
   for(const f of js){const h=findComments(read(f));assert.deepEqual(h,[],f+' has a comment at '+h[0])}
   for(const f of fileList('src').filter(f=>f.endsWith('.js')))assert.doesNotMatch(read(f),/Math\s*\.\s*random/,f);
   for(const f of fileList('src/styles'))assert.deepEqual(findCssComments(read(f)),[],f);

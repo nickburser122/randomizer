@@ -1,9 +1,10 @@
 import {copy} from '../core/clipboard.js';
 import {$,el} from '../core/dom.js';
+import {t} from '../core/i18n.js';
 import {announce} from '../core/live.js';
 import {loadJSON,saveJSON} from '../core/storage.js';
 
-export const TABN={pw:'Password',tb:'Table',pk:'Pick',rl:'Roll',tk:'Tools'};
+export const TABN={pw:t('Password'),tb:t('Table'),pk:t('Pick'),rl:t('Roll'),tk:t('Tools')};
 export const cleanItems=(o,max)=>Array.isArray(o)?o.filter(x=>x&&TABN[x.t]&&typeof x.v==='string').slice(0,max):[];
 export function pushItem(items,t,v,max){
 v=String(v||'');if(!v)return items;
@@ -13,7 +14,7 @@ const H={max:40,items:[]};
 const saveH=()=>saveJSON('rz-h',H.items);
 function drawH(){
 const l=$('#sh-l');l.textContent='';
-if(!H.items.length){l.append(el('p','empty','Nothing here yet. Results appear as you generate them, on this device only.'));return}
+if(!H.items.length){l.append(el('p','empty',t('Nothing here yet. Results appear as you generate them, on this device only.')));return}
 H.items.forEach(x=>{const b=el('button','li');b.append(el('span','h-t',TABN[x.t]),document.createTextNode(x.v));b.onclick=()=>copy(x.v,b);l.append(b)})}
 export function hist(t,v){
 const n=pushItem(H.items,t,v,H.max);if(n===H.items)return;
@@ -29,5 +30,5 @@ H.items=cleanItems(loadJSON('rz-h',null),H.max);
 $('#sh-o').onclick=()=>shToggle(!$('#sh').classList.contains('on'));
 $('#sh-x').onclick=()=>shToggle(false);
 $('#sh-cp').onclick=function(){if(!H.items.length)return;copy(H.items.map(x=>x.v).join('\n\n'),this)};
-$('#sh-cl').onclick=()=>{H.items=[];saveH();drawH();announce('History cleared')};
+$('#sh-cl').onclick=()=>{H.items=[];saveH();drawH();announce(t('History cleared'))};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#sh').classList.contains('on'))shToggle(false)})}

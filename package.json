@@ -1,17 +1,20 @@
 {
   "name": "randomizer",
-  "version": "2.2.0",
+  "version": "3.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test test/unit.test.mjs",
+    "test": "node --test test/unit.test.mjs test/features.test.mjs test/i18n.test.mjs test/platform.test.mjs",
     "smoke": "node build.mjs && node test/smoke.mjs",
-    "parity": "node test/parity.mjs",
-    "check": "npm test && npm run smoke"
+    "parity": "node build.mjs && node test/parity.mjs",
+    "baseline": "node build.mjs && node test/parity.mjs --write",
+    "icons": "node scripts/icons.mjs",
+    "check": "npm test && npm run smoke && node test/parity.mjs"
   },
   "devDependencies": {
     "@sparticuz/chromium": "^153.0.0",
+    "axe-core": "^4.14.1",
     "esbuild": "^0.24.0",
     "puppeteer-core": "^25.17.0"
   }

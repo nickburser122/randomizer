@@ -1,5 +1,6 @@
 import {$} from '../core/dom.js';
 import {get,set} from '../core/storage.js';
+import {t} from '../core/i18n.js';
 
 export function initTheme(){
 const mq=matchMedia('(prefers-color-scheme: dark)');
@@ -11,7 +12,7 @@ const v="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='1.
 $('#ico').href='data:image/svg+xml,'+encodeURIComponent(v)}
 function applyTheme(){
 document.documentElement.dataset.theme=mode==='system'?(mq.matches?'dark':'light'):mode;
-$('#mode').textContent=mode[0].toUpperCase()+mode.slice(1);$('#mode').setAttribute('aria-label','Theme: '+mode+'. Press to change.');setIcon()}
+const nm={system:t('System'),light:t('Light'),dark:t('Dark')}[mode];$('#mode').textContent=nm;$('#mode').setAttribute('aria-label',t('Theme: {mode}. Press to change.',{mode:nm}));setIcon()}
 mq.addEventListener('change',()=>{if(mode==='system')applyTheme()});
 $('#mode').onclick=()=>{mode={system:'light',light:'dark',dark:'system'}[mode];set('rz-mode',mode);applyTheme()};
 applyTheme()}
